@@ -10,9 +10,9 @@
 可离线、可复现、带门禁的形态。
 
 ```
-app/     核心逻辑，750 代码行（物理 1187，注释占 14%）
-evals/   评测层：30 条标注集 + 3 个判官 + 门禁 + 消融（物理 576）
-tests/   35 个离线回归断言，假模型，3.6 秒（物理 630）
+app/     核心逻辑，750 代码行（物理 1187，其余为注释、docstring 与空行）
+evals/   评测层：30 条标注集 + 3 个判官 + 门禁 + 消融（物理 705）
+tests/   37 个离线回归断言，假模型，约 4 秒（物理 656）
 data/    语料抓取脚本 + 哈希锁定清单（全文不入库）
 ```
 
@@ -26,7 +26,8 @@ python scripts/fetch_corpus.py          # 按 corpus.lock.json 抓 14 篇论文�
 python -m app.cli --ask "How many QA pairs does CRAG contain?" --verbose
 ```
 
-首次 `--ask` 会自动建索引（1,357 个片段）。`--verbose` 打印每个节点的耗时：
+首次 `--ask` 会自动建索引（1,357 个片段）。`--verbose` 按下面的格式打印每个节点的耗时
+与决策——**这是格式示意，毫秒数是占位值**，真实耗时需要填 key 后跑一次（§4）：
 
 ```
 route         312ms  complex  需要具体数值，须查语料
@@ -45,7 +46,11 @@ python -m evals.validate                       # 先校验数据集本身（7 �
 python -m evals.run --limit 10                 # 小样本冒烟
 python -m evals.run --gate --baseline reports/xxx.json
 python -m evals.run --ablation --limit 10      # 四组消融
+pytest -q                                      # 37 个断言，不联网、不耗 token
 ```
+
+`pytest` 在**未抓语料**的干净克隆上会有 3 条跳过（跳过的理由直接打印「先跑
+scripts/fetch_corpus.py」），其余 34 条照常通过——测试不该因为缺数据就假装失败。
 
 报告落在 `reports/{ts}-eval.{json,md}` 与 `reports/{ts}-ablation.{json,md}`。**`reports/` 不进版本库**——
 报告能由命令重放，仓库只存能重放它的代码。`--baseline` 缺省取 `reports/` 里最新一份普通评测，
