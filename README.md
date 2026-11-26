@@ -4,9 +4,9 @@
 问题先判「要不要查资料」，需要查就拆子问题、边查边规划，答不出来就明说缺什么——
 每一步都能在 trace 里看到耗时与决策。
 
-**这不是从零另写的一个项目**，而是在公开 Agentic RAG 实现（`ai_doubao_ysw` 仓库的
-`advanced-rag` 与 `rag-demo`）基础上做的融合重构：保留它的三段式编排与五版演进思路，
-修正其中 15 个会让评测失真的具体缺陷（见 [§5](#5-与源实现的关系)），并把评测层重写为
+**这不是从零另写的一个项目**，而是在与导师共同完成的既有 Agentic RAG 实现
+（`advanced-rag` 与 `rag-demo` 两个目录）基础上做的融合重构：保留它的三段式编排与五版演进思路，
+修正其中 15 个会让评测失真的具体缺陷（见 [§5](#5-与既有实现的关系)），并把评测层重写为
 可离线、可复现、带门禁的形态。
 
 ```
@@ -86,7 +86,7 @@ scripts/fetch_corpus.py」），其余 34 条照常通过——测试不该因�
 ```
 
 **回边的条件边只读 `state.next_action`，而这个字段只有 `plan` 会写。**
-这是刻意的：源实现的 `afterPlan` 读的是 `route` 阶段写入的 `strategy`（恒为 `complex`），
+这是刻意的：既有实现的 `afterPlan` 读的是 `route` 阶段写入的 `strategy`（恒为 `complex`），
 于是「多跳回边」从未执行过一次，而日志里 `plannedNext` 打得漂漂亮亮，谁也不会怀疑。
 把「条件边读的字段」与「节点写的字段」在类型上变成同一个，读错就立刻报错而不是静默降级。
 
@@ -166,21 +166,21 @@ python -m evals.run --gate
 | 变体 | 改了什么 |
 |---|---|
 | A 单路向量 | `hybrid=false`，`multihop=false` |
-| B +BM25（拼接） | `hybrid=true`，`fusion=concat`——**这是源实现的形态**：两路结果直接拼、按 id 去重，向量相似度不参与排序 |
+| B +BM25（拼接） | `hybrid=true`，`fusion=concat`——**这是既有实现的形态**：两路结果直接拼、按 id 去重，向量相似度不参与排序 |
 | C +RRF | `fusion=rrf`，名次融合 |
 | D +多跳 | `multihop=true`，回边与两级熔断挂上 |
 
-B 组不是凑数的：它把「源实现停在 hybrid 版却没做到融合」变成一个可测的基线，
+B 组不是凑数的：它把「既有实现停在 hybrid 版却没做到融合」变成一个可测的基线，
 「RRF 值多少个百分点」才有据可依。
 
 ---
 
-## 5. 与源实现的关系
+## 5. 与既有实现的关系
 
-源仓库有五个渐进版本（`naive-rag` → `query-router` → `multihop` → `webfallback` →
+既有实现有五个渐进版本（`naive-rag` → `query-router` → `multihop` → `webfallback` →
 `hybrid`），逐版加能力，但每一版都有会让**评测失真而不报错**的问题。融合时逐条处理：
 
-| 源实现 | 这里的处理 |
+| 既有实现 | 这里的处理 |
 |---|---|
 | `afterPlan` 读 `strategy`，回边永不触发 | 条件边只读 `next_action`，`test_loop_guard` 钉住「检索恰好 2 次」 |
 | `retrievedDocs` / `retrieveDocs` 字段名错位，LangGraph 静默丢弃 | `State` 用 `extra="forbid"`，写错字段当场 `ValidationError` |
@@ -192,7 +192,7 @@ B 组不是凑数的：它把「源实现停在 hybrid 版却没做到融合」�
 | 无产物、无门禁，跑完只打印一行 | `reports/*.json` 落盘 + `--gate` 退出码 + `--baseline` diff |
 
 被放弃的能力也写清楚了：**联网兜底**（会让离线评测不可复现，且 6 条无答案题会被搜索直接答掉）、
-**replan**（状态机多一条回边、测试翻倍，且源实现没有可参照的正确形态）、
+**replan**（状态机多一条回边、测试翻倍，且既有实现没有可参照的正确形态）、
 **Milvus / ES / LangSmith**（见上表第三章）。
 
 ---
@@ -232,5 +232,5 @@ B 组不是凑数的：它把「源实现停在 hybrid 版却没做到融合」�
 | `docs/decisions.md` | 17 条裁定：问题 / 选项 / 裁定 / 代价 |
 | `docs/plan.md` | 架构、行数预算、来源映射（18 项能力的去向） |
 | `docs/tasks.md` | 15 个任务与完成判据、缺陷→测试对齐表 |
-| `docs/source-audit.md` | 源仓库勘察：15 条带行号的缺陷 |
+| `docs/source-audit.md` | 既有实现勘察：15 条带行号的缺陷 |
 | `docs/resume.md` | 简历叙事与「数字来源对照表」（跑不出来的数字留空） |

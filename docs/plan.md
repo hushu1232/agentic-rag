@@ -1,6 +1,6 @@
 # Plan · 实现方案
 
-> 输入：`spec.md`（行为）、`decisions.md`（裁定）、`source-audit.md`（源仓库勘察）。
+> 输入：`spec.md`（行为）、`decisions.md`（裁定）、`source-audit.md`（既有实现勘察）。
 > 本文件含原「阶段 1 映射表」全部内容，不再单独出 `merge-mapping.md`。
 
 ## 1. 分层
@@ -84,7 +84,7 @@ question
 | 依赖 | 为什么需要 |
 |---|---|
 | `langgraph` | 题目指定用它的 StateGraph 手写图；条件边与循环是核心（自己写状态机要 150 行且不可避免要测回边） |
-| `pydantic` | 跨节点数据结构 + 模型结构化输出的解析校验；`dict` 会让 `retrieveDocs` 这类字段名错到运行期才发现（源仓库 D02 就是这个问题） |
+| `pydantic` | 跨节点数据结构 + 模型结构化输出的解析校验；`dict` 会让 `retrieveDocs` 这类字段名错到运行期才发现（既有实现 D02 就是这个问题） |
 | `openai` | 唯一的模型出口，OpenAI 兼容协议；换供应商只改 `base_url` |
 | `numpy` | 精确余弦与 RRF 排序；纯 Python 循环在 120×1024 上慢一个量级 |
 | `rank_bm25` | 关键词侧现成实现，约 60 行；自己写 IDF 与打分的价值为零 |
@@ -120,7 +120,7 @@ question
 | 17 | 批量评测适配层 | `run_eval:13-29` | 保留思路（`answer + context` 进评测） | `evals/run.py` |
 | 18 | Milvus / ES / LangSmith 云 / openevals | 分散在多文件 | **弃用**（替代方案与指标含义变化见 §8） | — |
 
-**唯一新增的判定**：#8 查询扩展在原计划里被我整段丢弃，理由是「与 `decompose` 重复」。按 ADR-013 第 3 条，弃用必须有理由且经确认——而它其实可以零成本融合：`retrieve.py` 的入口本来就该接受「一组 query」（源实现的 hybrid 就是拿 4 条改写并行召回），把单条泛化成多条只多约 12 行。所以改为**保留但默认关闭**，并顺手成为消融的第五个维度。
+**唯一新增的判定**：#8 查询扩展在原计划里被我整段丢弃，理由是「与 `decompose` 重复」。按 ADR-013 第 3 条，弃用必须有理由且经确认——而它其实可以零成本融合：`retrieve.py` 的入口本来就该接受「一组 query」（既有实现的 hybrid 就是拿 4 条改写并行召回），把单条泛化成多条只多约 12 行。所以改为**保留但默认关闭**，并顺手成为消融的第五个维度。
 
 ### 6.1 逐文件映射
 
@@ -131,13 +131,13 @@ question
 | `rag-query-router.mjs:73-96` | `nodes.py(answer)` | 直答 prompt | 与 RAG 作答合并为一个 `answer` 节点，按 `selected` 是否为空分两支 | 独立的 `direct_answer` 节点（省 20 行，行为不变） |
 | `rag-multihop.mjs:133-172` | `nodes.py(decompose)` | 有序子问题、禁指代词、须可独立检索；`trim+filter` 后判空 | 1–8 → 1–6；`throw` → 保序截断 / 降级为 `[question]` 并在 trace 标记 | `console.log` 逐条打印 |
 | `rag-multihop.mjs:174-226` | `nodes.py(retrieve)` `retrieve.py` | 按 `next_idx` 推进；跨轮累积去重（避免重复片段造成"多方证据"错觉） | 单路 Milvus → 双路 + RRF；去重键 `chunk_id`（不是可空 id） | `String(d.id)` + `"unknown"` 兜底（D07）、`throw Error` 中断 |
-| `rag-multihop.mjs:228-287` | `nodes.py(plan)` | **两道硬熔断**（轮数 / 子问题耗尽）——源仓库唯一写对的部分，逐条保留；prompt 里「下一轮自动使用下一条子问题，你不要自拟查询」的措辞 | 条件边读 `next_action` 而非 `strategy`（**D01 的正解**） | `afterPlan` 原函数（就是它读错字段） |
+| `rag-multihop.mjs:228-287` | `nodes.py(plan)` | **两道硬熔断**（轮数 / 子问题耗尽）——既有实现唯一写对的部分，逐条保留；prompt 里「下一轮自动使用下一条子问题，你不要自拟查询」的措辞 | 条件边读 `next_action` 而非 `strategy`（**D01 的正解**） | `afterPlan` 原函数（就是它读错字段） |
 | `rag-multihop.mjs:289-327` | `nodes.py(answer)` | 五条回答要求（只依据片段、可综合、无依据就说、可引用原文） | 追加拒答固定标记；上下文改读 `selected` | 流式打印（CLI 层做） |
 | `rag-webfallback.mjs:132-167` | `nodes.py(answer)` | 「信息充分性」的判定维度（`enough` / `missing`） | 折进 `answer` 的拒答说明：`missing` 用来解释「缺哪一项」 | `web_query` 字段、二次评估的整条回边（ADR-003） |
 | `rag-webfallback.mjs:222-300` | —— | —— | —— | **整段丢弃**：博查搜索、`catch` 引用未定义 `error`、网页结果判空取反 |
 | `hybrid-retrieval.mjs:57-89` | `retrieve.py` | 不同来源文档的 metadata 归一化；按 id 去重 | `chunk_id` 作键；同 id 保留**两路分数**而不是「先到者」 | ES 优先覆盖（D08）、`id` 可空的假设 |
 | `hybrid-retrieval.mjs:162-251` | `graph.py` `retrieve.py` `rerank.py` | 双路并行召回 + fan-in 汇合边的形态；`formatDocsAsContext` 的 `[i] id= source=` 格式 | 并行改 `asyncio.gather`；汇合后接 RRF；rerank 做成可开关 | `!merge.length`（函数取 .length，D05）、硬编码 `INDEX`/`localhost`、`console.log(batches)` |
-| `rag/query-augment.mjs:33-49` | —— | —— | —— | **丢弃**：本项目的「查询扩展」由 `decompose` 承担；源实现的 3 条改写在多跳场景下反而放大噪声，且降级时用原句补齐导致同一 query 检索 4 次（D19） |
+| `rag/query-augment.mjs:33-49` | —— | —— | —— | **丢弃**：本项目的「查询扩展」由 `decompose` 承担；既有实现的 3 条改写在多跳场景下反而放大噪声，且降级时用原句补齐导致同一 query 检索 4 次（D19） |
 | `rerank/dashscope-rerank.mjs` | `rerank.py` | 按 `output.results[].index` 回取原文档的外壳思路 | 继承 LangChain 基类 → 30 行 `httpx`/`urllib` 客户端；`enabled=false` 直接返回入参 | 类继承、`res.json()` 先于 `res.ok`（D14）、下标不校验 |
 | `rag/seed-data.mjs:122-263` | `index.py` | 「同源数据双写两套索引」的思路（两库字段对齐的必要性） | 落地为 `vectors.npz` + `bm25.pkl` 一份 manifest 管两者 | ES/Milvus 客户端、`priority` 类型不一致（D16）、L2 建索引 vs COSINE 检索（D09） |
 | `milvus_insert.mjs:30-53` | `index.py` | 切块参数 `chunkSize=500 / overlap=50` 的取值经验 | 先按标题切、再定长切；metadata 增加 `chunk_id` | 「只有 `source` 没有切片 id」、`console.log(chunks/vectors)` |
@@ -147,9 +147,9 @@ question
 | `eval/run_eval.mjs:13-29` | `evals/run.py` | 「被测函数 → 评测框架」的适配层只需几行（说明评测可完全解耦） | `evaluate()` → 本地 30 条循环 + 两份报告 + 门禁 + `--baseline` | LangSmith client、`result` 算完不用的写法（D13） |
 | 全仓库 5 处 | `llm.py` | —— | 五处重复的客户端构造 → 单一 `Deps.llm`，重试/超时/token 统计集中在此 | 模块级客户端实例、`retrieveRelevantContent` 的 4 份副本 |
 
-## 7. 新增项（源仓库没有、必须自己写）
+## 7. 新增项（既有实现没有、必须自己写）
 
-| 新增 | 源实现为什么没有 | 为什么必须有 |
+| 新增 | 既有实现为什么没有 | 为什么必须有 |
 |---|---|---|
 | numpy 精确检索 + npz | 直接把 Milvus 当默认前提（4 个文件各有一次连接代码） | 评测要离线可复现、要 `pip install` 后一条命令跑通。ANN 在百级语料下只有近似误差，没有速度收益 |
 | BM25 关键词侧 | 只在 hybrid 里用 ES 实现，依赖 ik 分词插件 | 编号类查询（`ERR-4291`、`sk_live_`、`P1`）在 embedding 空间里不可分，这是向量侧的结构性弱点。无此路则「混合」不成立 |
@@ -157,10 +157,10 @@ question
 | 带 chunk 标注的评测集 | 数据集只有 `{question, answer}`；切块无 `chunk_id` | 没有 `relevant_chunk_ids`，`context_recall` 无从计算——这是「可量化」的第一块砖 |
 | 阈值门禁 + `exit 1` | 只有 LangSmith 上的可视化分数，无人判 | 分数本身不构成约束。门禁把「退步」变成 CI 里的红灯，并且指出差在哪个指标 |
 | `--baseline` diff | 对比依赖 LangSmith 的实验列表 UI | 本地化后必须自己算 diff；否则「改前/改后」只能靠肉眼翻两份 JSON |
-| 5 个回归测试（假模型） | 源仓库无任何测试 | 源仓库的 5 个真实缺陷（D01/D02/D03/D04/D05）**全部**是「跑一次看不出来」的类型，只有断言能抓住。且评测要花 token 和几分钟，测试必须秒级、离线 |
-| `routing_accuracy` 指标 | 源仓库无「路由正确率」概念 | 路由判错时 `context_recall` 记 0 会与「召回差」混淆。单独一个确定性指标才能定位是路由问题还是检索问题（ADR-004 的连带裁定） |
-| 拒答标记协议 | 源实现只说「如实告知用户」，无格式约束 | 让拒答可被规则判定，成本为零且不抖动（ADR-005） |
-| 配置级消融开关 + `--ablation` | 源实现每一版都是一份独立脚本，差距靠人肉对比 | 三个布尔开关跑同一套评测，output 是「每一步 +X.Xpt」的 diff 表。这是简历里唯一可信的「效果好」证据（ADR-012） |
+| 5 个回归测试（假模型） | 既有实现无任何测试 | 既有实现的 5 个真实缺陷（D01/D02/D03/D04/D05）**全部**是「跑一次看不出来」的类型，只有断言能抓住。且评测要花 token 和几分钟，测试必须秒级、离线 |
+| `routing_accuracy` 指标 | 既有实现无「路由正确率」概念 | 路由判错时 `context_recall` 记 0 会与「召回差」混淆。单独一个确定性指标才能定位是路由问题还是检索问题（ADR-004 的连带裁定） |
+| 拒答标记协议 | 既有实现只说「如实告知用户」，无格式约束 | 让拒答可被规则判定，成本为零且不抖动（ADR-005） |
+| 配置级消融开关 + `--ablation` | 既有实现每一版都是一份独立脚本，差距靠人肉对比 | 三个布尔开关跑同一套评测，output 是「每一步 +X.Xpt」的 diff 表。这是简历里唯一可信的「效果好」证据（ADR-012） |
 
 ## 8. 弃用项与指标含义变化
 
