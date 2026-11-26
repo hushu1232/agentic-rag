@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.index/
+.pytest_cache/
+
+# 语料全文不入库：arXiv 默认许可是非独占授权，不授予再分发权（ADR-014）。
+# 只保留抓取脚本与 data/corpus.lock.json（编号+版本+sha256）。
+# 复现方式：python scripts/fetch_corpus.py
+data/corpus/*.txt
+
+# 评测产物：报告可复现，不占仓库体积
+reports/*.json
+reports/*.md
+
+# 抓取与调试中途产物
+.cache/
+
+# 本地工作日志（过程记录，非交付物；技术决策见 docs/decisions.md）
+.workbuddy/

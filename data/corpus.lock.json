@@ -1,0 +1,145 @@
+{
+  "papers": [
+    {
+      "slug": "rag-lewis",
+      "arxiv_id": "2005.11401",
+      "version": 4,
+      "url": "https://arxiv.org/html/2005.11401v4",
+      "sha256": "fe9f2241c8c870893bf9c9a272736c8272f53291884e0969cc25897054d8e203",
+      "chars": 45867,
+      "venue": "NeurIPS 2020",
+      "citation": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. NeurIPS 2020. arXiv:2005.11401v4"
+    },
+    {
+      "slug": "beir",
+      "arxiv_id": "2104.08663",
+      "version": 4,
+      "url": "https://arxiv.org/html/2104.08663v4",
+      "sha256": "a6749373e9635420298f69f03da321d28b7bfba49efccd593333b5554b4cd52e",
+      "chars": 81646,
+      "venue": "NeurIPS 2021 Datasets & Benchmarks",
+      "citation": "BEIR: A Heterogenous Benchmark for Zero-shot Evaluation of Information Retrieval Models. NeurIPS 2021 Datasets & Benchmarks. arXiv:2104.08663v4"
+    },
+    {
+      "slug": "react",
+      "arxiv_id": "2210.03629",
+      "version": 3,
+      "url": "https://arxiv.org/html/2210.03629v3",
+      "sha256": "d435fd20bfafc7c0a427b94b505ab3cdb2639ae6b710040037679d252b5d769c",
+      "chars": 91164,
+      "venue": "ICLR 2023",
+      "citation": "ReAct: Synergizing Reasoning and Acting in Language Models. ICLR 2023. arXiv:2210.03629v3"
+    },
+    {
+      "slug": "hyde",
+      "arxiv_id": "2212.10496",
+      "version": 1,
+      "url": "https://arxiv.org/html/2212.10496v1",
+      "sha256": "6858bc6f1343b71fec059cd52966b76c5a5978c1d0e69bad2f1f3e68bea17134",
+      "chars": 24970,
+      "venue": "ACL 2023",
+      "citation": "Precise Zero-Shot Dense Retrieval without Relevance Labels. ACL 2023. arXiv:2212.10496v1"
+    },
+    {
+      "slug": "ircot",
+      "arxiv_id": "2212.10509",
+      "version": 2,
+      "url": "https://arxiv.org/html/2212.10509v2",
+      "sha256": "3e05c18d89dee401a7d7ddd28b118476ace08c0ba64fc78b3b0b80f691ebe90f",
+      "chars": 49990,
+      "venue": "ACL 2023",
+      "citation": "Interleaving Retrieval with Chain-of-Thought Reasoning for Knowledge-Intensive Multi-Step Questions. ACL 2023. arXiv:2212.10509v2"
+    },
+    {
+      "slug": "rankgpt",
+      "arxiv_id": "2304.09542",
+      "version": 3,
+      "url": "https://arxiv.org/html/2304.09542v3",
+      "sha256": "81ba612a1c5771327265301825e192050dc2582e2c8340379bf474e7fe680ed6",
+      "chars": 59958,
+      "venue": "EMNLP 2023",
+      "citation": "Is ChatGPT Good at Search? Investigating Large Language Models as Re-Ranking Agents. EMNLP 2023. arXiv:2304.09542v3"
+    },
+    {
+      "slug": "flare",
+      "arxiv_id": "2305.06983",
+      "version": 2,
+      "url": "https://arxiv.org/html/2305.06983v2",
+      "sha256": "85e1e24656f0feade1f9364a3f3c2a343a7103dd86944a60edbfdf1628c68697",
+      "chars": 41683,
+      "venue": "EMNLP 2023",
+      "citation": "Active Retrieval Augmented Generation. EMNLP 2023. arXiv:2305.06983v2"
+    },
+    {
+      "slug": "lost-in-the-middle",
+      "arxiv_id": "2307.03172",
+      "version": 3,
+      "url": "https://arxiv.org/html/2307.03172v3",
+      "sha256": "a29d1ecccdc291e055759b498a84815a5748666d4e16649809d6cc3d28ec2bc9",
+      "chars": 49814,
+      "venue": "TACL 2024",
+      "citation": "Lost in the Middle: How Language Models Use Long Contexts. TACL 2024. arXiv:2307.03172v3"
+    },
+    {
+      "slug": "ragas",
+      "arxiv_id": "2309.15217",
+      "version": 2,
+      "url": "https://arxiv.org/html/2309.15217v2",
+      "sha256": "2e4ebfe05e210785f8429e614525c835c698914a704553d859a1af2d313def82",
+      "chars": 24091,
+      "venue": "EACL 2024 Demo",
+      "citation": "Ragas: Automated Evaluation of Retrieval Augmented Generation. EACL 2024 Demo. arXiv:2309.15217v2"
+    },
+    {
+      "slug": "self-rag",
+      "arxiv_id": "2310.11511",
+      "version": 1,
+      "url": "https://arxiv.org/html/2310.11511v1",
+      "sha256": "6c38b790954040fc3958dd0d5600a97f8ec332e30bfe25fccf3af261c0b0b6c5",
+      "chars": 74671,
+      "venue": "ICLR 2024",
+      "citation": "Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection. ICLR 2024. arXiv:2310.11511v1"
+    },
+    {
+      "slug": "ares",
+      "arxiv_id": "2311.09476",
+      "version": 2,
+      "url": "https://arxiv.org/html/2311.09476v2",
+      "sha256": "72354ca9b3a3404ce62704ec7e10306a4c7f69f48b624704fe1fe66470e14a22",
+      "chars": 98370,
+      "venue": "NAACL 2024",
+      "citation": "ARES: An Automated Evaluation Framework for Retrieval-Augmented Generation Systems. NAACL 2024. arXiv:2311.09476v2"
+    },
+    {
+      "slug": "adaptive-rag",
+      "arxiv_id": "2403.14403",
+      "version": 2,
+      "url": "https://arxiv.org/html/2403.14403v2",
+      "sha256": "6732574c05c7e5eea079ea6d0a175dd92a21c819a07b863d4fd315d101622152",
+      "chars": 55149,
+      "venue": "NAACL 2024",
+      "citation": "Adaptive-RAG: Learning to Adapt Retrieval-Augmented Large Language Models through Question Complexity. NAACL 2024. arXiv:2403.14403v2"
+    },
+    {
+      "slug": "crag",
+      "arxiv_id": "2406.04744",
+      "version": 2,
+      "url": "https://arxiv.org/html/2406.04744v2",
+      "sha256": "9c57f88d705b6ecda54cd82fbf143e01df4c3c35471bea74a375dfb018777ff1",
+      "chars": 65461,
+      "venue": "NeurIPS 2024 D&B",
+      "citation": "CRAG -- Comprehensive RAG Benchmark. NeurIPS 2024 D&B. arXiv:2406.04744v2"
+    },
+    {
+      "slug": "ragchecker",
+      "arxiv_id": "2408.08067",
+      "version": 2,
+      "url": "https://arxiv.org/html/2408.08067v2",
+      "sha256": "b459f528b732f756d33fbb4697e03ffad1de6be981aafea40f463101a5372aab",
+      "chars": 70528,
+      "venue": "NeurIPS 2024",
+      "citation": "RAGChecker: A Fine-grained Framework for Diagnosing Retrieval-Augmented Generation. NeurIPS 2024. arXiv:2408.08067v2"
+    }
+  ],
+  "note": "全文不提交仓库（arXiv 默认许可不含再分发权）。执行 scripts/fetch_corpus.py 后本地文本的 sha256 必须与本文件一致，否则 chunk_id 与评测基线全部失效。"
+}

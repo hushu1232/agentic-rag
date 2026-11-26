@@ -1,0 +1,37 @@
+# 所有可调参数集中在这里。改参数不改代码。
+# 修改后需重跑评测：门禁阈值与 retrieval 取数会一起生效。
+
+retrieval:
+  chunk_size: 800        # 切块目标长度（字符）：论文一段约 800–1200 字，800 能保住一个论断
+  chunk_overlap: 100     # 相邻块重叠，避免论断被切断
+  top_k_each: 8          # 每一路召回的条数（向量 / BM25 各自）
+  top_n: 5               # 最终进入上下文的片段数
+  rrf_k: 60              # RRF 平滑常数，文献默认值，不建议调
+  hybrid: true           # false = 只走向量一路（消融 A 组）
+  fusion: rrf            # rrf = 名次融合；concat = 拼接去重（消融 B 组，源实现形态）
+  query_augment: false   # true = 先用 LLM 把当前查询扩成 3 条改写再并行召回（源实现能力，融合保留但默认关）
+
+rerank:
+  enabled: false         # 默认关闭：百级语料下收益不抵延迟，见 README「关键取舍」
+  model: qwen3-rerank
+  url: https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank
+
+graph:
+  multihop: true         # false = 退化为 route -> retrieve -> answer（消融 D 组对照）
+  max_rounds: 3          # 检索轮数上限（硬熔断之一）
+  max_sub_questions: 6   # 子问题条数上限，超出保序截断
+
+index:
+  corpus_dir: data/corpus
+  dir: .index
+
+evals:
+  dataset: evals/dataset.jsonl
+  reports_dir: reports
+  gates:                 # 任一不达标即 exit 1；键名固定，拼错会直接报错
+    context_recall: 0.70
+    groundedness: 0.80
+    answer_relevance: 0.80
+    refusal_accuracy: 0.80
+    routing_accuracy: 0.85
+    null_rate: 0.10      # 反向指标：判官失败率，超过即 fail
